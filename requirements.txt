@@ -1,0 +1,9 @@
+streamlit
+transformers
+torch
+pandas
+python-dotenv
+requests
+google-generativeai
+cohere
+openpyxl
