@@ -24,13 +24,13 @@ if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
 GEMINI_API_KEYS = [
-    os.getenv("GEMINI_KEY1"),
-    os.getenv("GEMINI_KEY2"),
-    os.getenv("GEMINI_KEY3"),
+    st.secrets["GEMINI_KEY1"],
+    st.secrets["GEMINI_KEY2"],
+    st.secrets["GEMINI_KEY3"],
 ]
-TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
-COHERE_API_KEY = os.getenv("COHERE_API_KEY")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+TOGETHER_API_KEY = st.secrets["TOGETHER_API_KEY"]
+COHERE_API_KEY = st.secrets["COHERE_API_KEY"]
+OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 
 def try_gemini_key():
@@ -100,7 +100,7 @@ def try_gemini_output(user_story):
 def try_llama3_together(user_story):
     try:
         headers = {
-            "Authorization": f"Bearer {os.getenv('TOGETHER_API_KEY')}",
+            "Authorization": f"Bearer {st.secrets['TOGETHER_API_KEY']}",
             "Content-Type": "application/json"
         }
         prompt = build_prompt(user_story)
