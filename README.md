@@ -1,4 +1,4 @@
-# 🤖 AI-Driven Requirements Engineering
+# 🤖 RE-assistant
 
 This repository contains research materials, experiments, and data related to my **Doctoral Study** on  
 **Human–AI Collaboration in Requirements Engineering** at the **University of Jyväskylä, Finland**.
