@@ -1,5 +1,119 @@
 # Ignore environment and cache files
 .env
+.streamlit/secrets.toml
 venv/
 __pycache__/
 *.pyc
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django / Flask / Scrapy / Sphinx
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+instance/
+.webassets-cache
+.scrapy
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Environments
+.envrc
+.venv
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder / Rope / IDE settings
+.spyderproject
+.spyproject
+.ropeproject
+.idea/
+.vscode/
+
+# mypy / pyre / pytype / Cython / Ruff
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+.ruff_cache/
+
+# Other tools
+.pypirc
+.cursorignore
+.cursorindexingignore
+.abstra/
+.pdm-python
+.pdm-build/
+.pixi
+__pypackages__/
+marimo/_static/
+marimo/_lsp/
+__marimo__/
