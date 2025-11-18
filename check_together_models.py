@@ -1,16 +1,20 @@
 import requests
+import json
 
-api_key = "tgp_v1_SUu3yVIii0xrg9Xp_FPcQW-LXU-hRZr1nJd8u1phyZw"  # Replace this
+TOGETHER_API_KEY = ""  # reomve 
 
 headers = {
-    "Authorization": f"Bearer {api_key}"
+    "Authorization": f"Bearer {TOGETHER_API_KEY}",
+    "Content-Type": "application/json",
 }
 
-response = requests.get("https://api.together.xyz/models", headers=headers)
+resp = requests.get("https://api.together.ai/v1/models", headers=headers)
 
-# ✅ Show the response content even if it's not JSON
-print("Status Code:", response.status_code)
-print("Headers:", response.headers)
-print("Text Response:")
-print(response.text)
+print("Status Code:", resp.status_code)
+print("Content-Type:", resp.headers.get("Content-Type", ""))
 
+data = resp.json()
+
+print("\n=== Available models (id — display_name — type) ===\n")
+for m in data:
+    print(f"{m.get('id')}  —  {m.get('display_name')}  —  {m.get('type')}")
