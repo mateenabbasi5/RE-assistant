@@ -14,9 +14,8 @@ from github import Github
 import json
 from io import BytesIO
 
-# -------------------------------
 # INITIAL SETUP
-# -------------------------------
+
 load_dotenv()
 st.set_page_config(
     page_title="RE Assistant (Gemini + OpenAI + LLaMA + Flan-T5)",
@@ -44,9 +43,8 @@ def require_secret(key: str):
         st.stop()
 
 
-# -------------------------------
-# USER FORM (MANDATORY)
-# -------------------------------
+# USER FORM 
+
 if not st.session_state.user_info_submitted:
     st.header("👤 Research Participation Form")
     st.markdown(
@@ -104,9 +102,8 @@ if not st.session_state.user_info_submitted:
                 st.exception(e)
                 st.stop()
 
-# -------------------------------
-# MAIN APP (after form)
-# -------------------------------
+# MAIN 
+
 if st.session_state.user_info_submitted:
     # Secrets
     GEMINI_KEY = require_secret("GEMINI_KEY")
@@ -125,9 +122,8 @@ if st.session_state.user_info_submitted:
     GEMINI_MODEL = "gemini-2.5-flash"
     TOGETHER_MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
 
-    # ---------------------------
     # Load Flan-T5-Large once
-    # ---------------------------
+    
     @st.cache_resource(show_spinner="⏳ Loading FLAN-T5-Large (first run only)…")
     def load_flan():
         model_id = "google/flan-t5-large"
@@ -139,10 +135,8 @@ if st.session_state.user_info_submitted:
         return tok, mdl
 
     tokenizer, model = load_flan()
-
-    # ---------------------------
+ 
     # Shared prompt (Gemini / OpenAI / LLaMA)
-    # ---------------------------
     def build_prompt(user_story: str) -> str:
         return f"""You are a professional requirements engineer.
 
@@ -239,7 +233,7 @@ Now respond with ONLY the 4 numbered criteria:
                 return cleaned[:4]
             return None
         except Exception:
-            # If anything goes wrong, just skip polishing
+            # If anything goes wrong
             return None
 
     def generate_flan_output(user_story: str) -> str:
@@ -280,7 +274,7 @@ Acceptance Criteria:
 
         raw = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # ---- Step 1: extract raw criteria from FLAN output ----
+        # extract raw criteria from FLAN output ----
         matches = re.findall(
             r"\b([1-4])[\.\)\:\-]\s*(.*?)\s*(?=(?:[1-4][\.\)\:\-])|$)",
             raw,
@@ -288,7 +282,7 @@ Acceptance Criteria:
         )
         extracted = [m[1].strip() for m in matches]
 
-        # Remove blanks / very short fragments
+        # Remove blanks 
         cleaned = []
         for item in extracted:
             if not item:
@@ -299,14 +293,14 @@ Acceptance Criteria:
                 continue
             cleaned.append(item)
 
-        # Remove items that clearly repeat the user story
+        # Remove repeat the user story
         us_l = user_story.lower()
         cleaned = [c for c in cleaned if us_l[:40] not in c.lower()]
 
-        # Deduplicate semantically similar criteria
+        # Deduplicate
         cleaned = deduplicate_criteria(cleaned)
 
-        # ---- Step 2: fallback pool if FLAN gave too few good items ----
+        # fallback 
         fallback_pool = [
             "The system shall allow the user to complete the main task successfully.",
             "The system shall provide clear and helpful feedback after each action.",
@@ -323,12 +317,12 @@ Acceptance Criteria:
 
         cleaned = cleaned[:4]
 
-        # ---- Step 3: optional polishing with OpenAI ----
+        #  optional polishing with OpenAI 
         polished = polish_criteria_with_openai(cleaned, user_story)
         if polished and len(polished) == 4:
             cleaned = polished
 
-        # ---- Step 4: enforce "The system shall ..." style & punctuation ----
+        # enforce style & punctuation
         final = []
         for c in cleaned:
             text = c.strip()
@@ -361,9 +355,8 @@ Acceptance Criteria:
 
         return "\n".join(f"{i+1}. {c}" for i, c in enumerate(final))
 
-    # ---------------------------
-    # Gemini helper
-    # ---------------------------
+    # Gemini
+
     def try_gemini_output(user_story: str) -> str:
         try:
             model_g = genai.GenerativeModel(GEMINI_MODEL)
@@ -372,9 +365,8 @@ Acceptance Criteria:
         except Exception as e:
             return f"❌ Gemini error: {e}"
 
-    # ---------------------------
-    # OpenAI helper
-    # ---------------------------
+    # OpenAI
+ 
     def try_openai_output(user_story: str) -> str:
         try:
             prompt = build_prompt(user_story)
@@ -391,9 +383,8 @@ Acceptance Criteria:
         except Exception as e:
             return f"❌ OpenAI error: {e}"
 
-    # ---------------------------
-    # LLaMA-3 (Together) helper
-    # ---------------------------
+    # LLaMA-3 (Together)
+
     def try_llama3_together(user_story: str) -> str:
         try:
             headers = {
@@ -422,9 +413,9 @@ Acceptance Criteria:
         except Exception as e:
             return f"❌ Together.ai (LLaMA) error: {e}"
 
-    # ---------------------------
+
     # MAIN INTERFACE
-    # ---------------------------
+
     st.title("📚 Human-in-the-Loop Acceptance Criteria Assistant")
     st.markdown(f"**Session ID:** `{st.session_state.session_id}`")
     st.markdown(f"**Device Used:** `{device_info}`")
@@ -461,9 +452,9 @@ Acceptance Criteria:
                 st.text_area("", value=output, height=200, key=f"out_{model_name}")
                 st.caption(f"⏱️ Time taken: {time.time() - start:.2f} sec")
 
-    # ---------------------------
-    # FEEDBACK SECTION
-    # ---------------------------
+
+    # FEEDBACK
+
     if "generated" in st.session_state and st.session_state.generated:
         action = st.radio(
             "What would you like to do?", ("Accept", "Edit", "Regenerate")
@@ -496,9 +487,8 @@ Acceptance Criteria:
                 )
             st.success("✅ Feedback saved!")
 
-    # ---------------------------
     # FEEDBACK DOWNLOAD
-    # ---------------------------
+
     if st.sidebar.button("Download Feedback Log"):
         if st.session_state.feedback_log:
             df = pd.DataFrame(st.session_state.feedback_log)
@@ -510,9 +500,8 @@ Acceptance Criteria:
         else:
             st.sidebar.warning("⚠️ No feedback to download.")
 
-    # ---------------------------
-    # ADMIN SECTION (password protected)
-    # ---------------------------
+    # ADMIN 
+
     st.sidebar.markdown("---")
     st.sidebar.subheader("🔐 Research Admin")
 
