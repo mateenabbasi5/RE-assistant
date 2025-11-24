@@ -13,12 +13,12 @@ from openai import OpenAI
 from github import Github
 import json
 from io import BytesIO
+from rag import retrieve_context 
 
-# INITIAL SETUP
 
 load_dotenv()
 st.set_page_config(
-    page_title="RE Assistant (Gemini + OpenAI + LLaMA + Flan-T5)",
+    page_title="RE Assistant (Gemini + OpenAI + LLaMA + Flan-T5 + RAG)",
     layout="wide",
 )
 
@@ -43,7 +43,7 @@ def require_secret(key: str):
         st.stop()
 
 
-# USER FORM 
+# USER FORM
 
 if not st.session_state.user_info_submitted:
     st.header("👤 Research Participation Form")
@@ -53,7 +53,7 @@ if not st.session_state.user_info_submitted:
     )
 
     with st.form("user_info_form"):
-        name = st.text_input("Full Name (optional)")
+        name = st.text_input("Full Name")
         email = st.text_input("Email (optional)")
         affiliation = st.text_input("Affiliation / Organization (optional)")
         purpose = st.text_area("How do you plan to use this tool?")
@@ -102,7 +102,7 @@ if not st.session_state.user_info_submitted:
                 st.exception(e)
                 st.stop()
 
-# MAIN 
+# MAIN
 
 if st.session_state.user_info_submitted:
     # Secrets
@@ -114,16 +114,15 @@ if st.session_state.user_info_submitted:
     GITHUB_REPO = require_secret("GITHUB_REPO")
     ADMIN_PASSWORD = require_secret("ADMIN_PASSWORD")
 
-    # API clients
+    # API
     genai.configure(api_key=GEMINI_KEY)
     openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
-    # Model names
     GEMINI_MODEL = "gemini-2.5-flash"
     TOGETHER_MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
 
-    # Load Flan-T5-Large once
-    
+    #  Flan-T5-Large   
+
     @st.cache_resource(show_spinner="⏳ Loading FLAN-T5-Large (first run only)…")
     def load_flan():
         model_id = "google/flan-t5-large"
@@ -134,11 +133,23 @@ if st.session_state.user_info_submitted:
         ).cpu()
         return tok, mdl
 
-    tokenizer, model = load_flan()
- 
-    # Shared prompt (Gemini / OpenAI / LLaMA)
-    def build_prompt(user_story: str) -> str:
-        return f"""You are a professional requirements engineer.
+    tokenizer, flan_model = load_flan()
+
+    #  Shared prompt 
+
+    def build_prompt(user_story: str, context: str | None = None) -> str:
+        """
+        Build main prompt for Gemini / OpenAI / LLaMA.
+        Optionally include RAG context.
+        """
+        context_block = ""
+        if context:
+            context_block = (
+                "Use the following project documentation as context:\n"
+                f"{context}\n\n"
+            )
+
+        return f"""{context_block}You are a professional requirements engineer.
 
 Given the user story below, write **exactly 4** acceptance criteria.
 
@@ -155,7 +166,7 @@ Now write the 4 acceptance criteria:
 
 1."""
 
-    # Flan-T5-Large
+    # Flan-T5 helpers
 
     def deduplicate_criteria(criteria: list[str]) -> list[str]:
         """Remove near-duplicate criteria based on a normalized key."""
@@ -222,7 +233,6 @@ Now respond with ONLY the 4 numbered criteria:
             )
             text = response.choices[0].message.content
 
-            # Extract 1.–4. from OpenAI output
             matches = re.findall(
                 r"\b[1-4][\.\)]\s*(.+?)(?=\s*[1-4][\.\)]|$)",
                 text,
@@ -236,10 +246,16 @@ Now respond with ONLY the 4 numbered criteria:
             # If anything goes wrong
             return None
 
-    def generate_flan_output(user_story: str) -> str:
-        """Generate 4 high-quality acceptance criteria using Flan-T5-Large + OpenAI polishing."""
+    def generate_flan_output(user_story: str, use_rag: bool = False) -> str:
+        """
+        Generate 4 high-quality acceptance criteria using Flan-T5-Large
+        + optional RAG context + optional OpenAI polishing.
+        """
 
-        flan_prompt = f"""
+        # RAG context
+        context = retrieve_context(user_story) if use_rag else None
+
+        flan_prompt = """
 You are a requirements engineer.
 
 Write exactly four meaningful acceptance criteria for the user story below.
@@ -250,21 +266,21 @@ Rules:
 - Each criterion must describe system behavior.
 - Prefer phrasing like "The system shall ...".
 - Do NOT leave any item empty.
-
-User Story:
-{user_story}
-
-Acceptance Criteria:
-1.
-2.
-3.
-4.
 """
+
+        if context:
+            flan_prompt = (
+                "Project documentation (for context):\n"
+                f"{context}\n\n"
+                + flan_prompt
+            )
+
+        flan_prompt += f"\nUser Story:\n{user_story}\n\nAcceptance Criteria:\n1.\n2.\n3.\n4.\n"
 
         inputs = tokenizer(flan_prompt, return_tensors="pt")
 
         with torch.no_grad():
-            outputs = model.generate(
+            outputs = flan_model.generate(
                 inputs.input_ids,
                 max_length=260,
                 num_beams=5,
@@ -274,7 +290,7 @@ Acceptance Criteria:
 
         raw = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # extract raw criteria from FLAN output ----
+        # extract raw criteria from FLAN output
         matches = re.findall(
             r"\b([1-4])[\.\)\:\-]\s*(.*?)\s*(?=(?:[1-4][\.\)\:\-])|$)",
             raw,
@@ -282,7 +298,7 @@ Acceptance Criteria:
         )
         extracted = [m[1].strip() for m in matches]
 
-        # Remove blanks 
+        # Remove blanks
         cleaned = []
         for item in extracted:
             if not item:
@@ -293,14 +309,14 @@ Acceptance Criteria:
                 continue
             cleaned.append(item)
 
-        # Remove repeat the user story
+        # Remove repeat of the user story
         us_l = user_story.lower()
         cleaned = [c for c in cleaned if us_l[:40] not in c.lower()]
 
         # Deduplicate
         cleaned = deduplicate_criteria(cleaned)
 
-        # fallback 
+        # fallback
         fallback_pool = [
             "The system shall allow the user to complete the main task successfully.",
             "The system shall provide clear and helpful feedback after each action.",
@@ -317,7 +333,7 @@ Acceptance Criteria:
 
         cleaned = cleaned[:4]
 
-        #  optional polishing with OpenAI 
+        # optional polishing with OpenAI
         polished = polish_criteria_with_openai(cleaned, user_story)
         if polished and len(polished) == 4:
             cleaned = polished
@@ -355,21 +371,23 @@ Acceptance Criteria:
 
         return "\n".join(f"{i+1}. {c}" for i, c in enumerate(final))
 
-    # Gemini
+    #  Gemini  
 
-    def try_gemini_output(user_story: str) -> str:
+    def try_gemini_output(user_story: str, use_rag: bool) -> str:
         try:
+            context = retrieve_context(user_story) if use_rag else None
             model_g = genai.GenerativeModel(GEMINI_MODEL)
-            response = model_g.generate_content(build_prompt(user_story))
+            response = model_g.generate_content(build_prompt(user_story, context))
             return response.text.strip()
         except Exception as e:
             return f"❌ Gemini error: {e}"
 
-    # OpenAI
- 
-    def try_openai_output(user_story: str) -> str:
+    #  OpenAI  
+
+    def try_openai_output(user_story: str, use_rag: bool) -> str:
         try:
-            prompt = build_prompt(user_story)
+            context = retrieve_context(user_story) if use_rag else None
+            prompt = build_prompt(user_story, context)
             response = openai_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -383,10 +401,11 @@ Acceptance Criteria:
         except Exception as e:
             return f"❌ OpenAI error: {e}"
 
-    # LLaMA-3 (Together)
+    #  LLaMA-3 (Together)  
 
-    def try_llama3_together(user_story: str) -> str:
+    def try_llama3_together(user_story: str, use_rag: bool) -> str:
         try:
+            context = retrieve_context(user_story) if use_rag else None
             headers = {
                 "Authorization": f"Bearer {TOGETHER_API_KEY}",
                 "Content-Type": "application/json",
@@ -398,7 +417,7 @@ Acceptance Criteria:
                         "role": "system",
                         "content": "You are a professional requirements engineer.",
                     },
-                    {"role": "user", "content": build_prompt(user_story)},
+                    {"role": "user", "content": build_prompt(user_story, context)},
                 ],
                 "temperature": 0.7,
                 "max_tokens": 512,
@@ -413,8 +432,7 @@ Acceptance Criteria:
         except Exception as e:
             return f"❌ Together.ai (LLaMA) error: {e}"
 
-
-    # MAIN INTERFACE
+    # MAIN INTERFACE 
 
     st.title("📚 Human-in-the-Loop Acceptance Criteria Assistant")
     st.markdown(f"**Session ID:** `{st.session_state.session_id}`")
@@ -426,6 +444,8 @@ Acceptance Criteria:
         ["Gemini", "OpenAI", "Flan-T5", "LLaMA-3 (Together)"],
         default=["Flan-T5"],
     )
+
+    use_rag = st.checkbox("Use project documents (RAG)", value=False)
     generate = st.button("Generate Acceptance Criteria")
 
     if generate and user_story:
@@ -438,20 +458,19 @@ Acceptance Criteria:
                 start = time.time()
 
                 if model_name == "Flan-T5":
-                    output = generate_flan_output(user_story)
+                    output = generate_flan_output(user_story, use_rag=use_rag)
                 elif model_name == "Gemini":
-                    output = try_gemini_output(user_story)
+                    output = try_gemini_output(user_story, use_rag=use_rag)
                 elif model_name == "OpenAI":
-                    output = try_openai_output(user_story)
+                    output = try_openai_output(user_story, use_rag=use_rag)
                 elif model_name == "LLaMA-3 (Together)":
-                    output = try_llama3_together(user_story)
+                    output = try_llama3_together(user_story, use_rag=use_rag)
                 else:
                     output = "❌ Unsupported model"
 
                 st.session_state.generated[model_name] = output
                 st.text_area("", value=output, height=200, key=f"out_{model_name}")
                 st.caption(f"⏱️ Time taken: {time.time() - start:.2f} sec")
-
 
     # FEEDBACK
 
@@ -500,7 +519,7 @@ Acceptance Criteria:
         else:
             st.sidebar.warning("⚠️ No feedback to download.")
 
-    # ADMIN 
+    #  ADMIN 
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("🔐 Research Admin")
