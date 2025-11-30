@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-11-30 17:37:15",
+  "session_id": "0293e5db-74ef-4426-b478-69946fb0fdda",
+  "model": "Flan-T5",
+  "user_story": "As a parent who wants to teach financial literacy to my children, I want the banking system to offer options for children's savings accounts, educational resources about budgeting and saving, parental controls for online banking, and user-friendly tools for monitoring their spending so that my children can learn about money management while using a safe and secure platform.",
+  "generated_ac": "1. The system shall allow parents to create and manage children's savings accounts with options for setting savings goals.\n2. The system shall provide educational resources about budgeting and saving that are easily accessible within the platform.\n3. The system shall include parental controls for online banking, allowing parents to monitor and restrict their children's spending activities.\n4. The system shall offer user-friendly tools for tracking and reporting children's spending habits in a clear and understandable manner.",
+  "human_action": "Accept",
+  "edited_ac": "1. The system shall allow parents to create and manage children's savings accounts with options for setting savings goals.\n2. The system shall provide educational resources about budgeting and saving that are easily accessible within the platform.\n3. The system shall include parental controls for online banking, allowing parents to monitor and restrict their children's spending activities.\n4. The system shall offer user-friendly tools for tracking and reporting children's spending habits in a clear and understandable manner.",
+  "device": "CPU"
+}
