@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-12-09 12:25:20",
+  "session_id": "cc9c5306-5ad9-4691-8962-53502aa4bd83",
+  "model": "Gemini",
+  "user_story": "As a customer, I want to be able to view the nutritional information and allergen information for each menu item so that I can make informed choices.\n",
+  "generated_ac": "1. The system shall display the nutritional information for a selected menu item.\n2. The system shall display the allergen information for a selected menu item.\n3. The system shall enable customers to access the nutritional and allergen information for every menu item.\n4. The system shall present the nutritional and allergen information in a clear and distinct manner for customer comprehension.",
+  "human_action": "Edit",
+  "edited_ac": "1. The system shall display the nutritional information for a selected menu item.\n2. The system shall display the allergen information for a selected menu item.\n3. The system shall enable customers to access the nutritional and allergen information for every menu item.\n4. The system shall present the nutritional and allergen information in a clear and distinct manner for customer comprehension.",
+  "device": "CPU"
+}
