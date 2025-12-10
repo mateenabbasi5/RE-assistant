@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-12-10 16:38:15",
+  "session_id": "b1d90390-c9c0-4c27-9eb3-19a1a8c0073d",
+  "model": "Gemini",
+  "models_used": [
+    "Flan-T5",
+    "Gemini"
+  ],
+  "user_story": "As a freelancer, I want to categorize my expenses and have real-time reporting of my balance so that I can gain a better understanding of my cash flow and make informed financial decisions.",
+  "generated_ac": "1. The system shall enable the user to assign a category to each recorded expense.\n2. The system shall display the user's current financial balance, updated instantaneously upon any income or expense transaction.\n3. The system shall generate a report detailing expenses broken down by category for a user-defined period.\n4. The system shall present a summary view of total income versus total expenses for a selected reporting period.",
+  "human_action": "Edit",
+  "edited_ac": "1. The system shall enable the user to assign a category to each recorded expense.\n2. The system shall display the user's current financial balance, updated instantaneously upon any income or expense transaction.\n3. The system shall generate a report detailing expenses broken down by category for a user-defined period.\n4. Twwwhe system shall present a summary view of total income versus total expenses for a selected reporting period.",
+  "final_ac": "1. The system shall allow the user to categorize expenses and view real-time balance reports.\n2. The system shall provide feedback indicating the success or failure of each user action.\n3. The system shall validate user inputs and display specific error messages for invalid entries.\n4. The system shall enable the user to assign a category to each recorded expense.\n5. The system shall display the user's current financial balance, updated instantaneously upon any income or expense transaction.",
+  "selected_criteria_all": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall allow the user to categorize expenses and view real-time balance reports."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 2,
+      "text": "The system shall provide feedback indicating the success or failure of each user action."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 3,
+      "text": "The system shall validate user inputs and display specific error messages for invalid entries."
+    },
+    {
+      "model": "Gemini",
+      "index": 1,
+      "text": "The system shall enable the user to assign a category to each recorded expense."
+    },
+    {
+      "model": "Gemini",
+      "index": 2,
+      "text": "The system shall display the user's current financial balance, updated instantaneously upon any income or expense transaction."
+    }
+  ],
+  "selected_criteria_for_model": [
+    {
+      "model": "Gemini",
+      "index": 1,
+      "text": "The system shall enable the user to assign a category to each recorded expense."
+    },
+    {
+      "model": "Gemini",
+      "index": 2,
+      "text": "The system shall display the user's current financial balance, updated instantaneously upon any income or expense transaction."
+    }
+  ],
+  "device": "CPU"
+}
