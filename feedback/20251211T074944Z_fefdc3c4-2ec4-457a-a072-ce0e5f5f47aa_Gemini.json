@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-12-11 09:49:44",
+  "session_id": "fefdc3c4-2ec4-457a-a072-ce0e5f5f47aa",
+  "model": "Gemini",
+  "models_used": [
+    "Flan-T5",
+    "Gemini"
+  ],
+  "user_story": "As a student, I want a planner that allows me to schedule my classes and assignments so that I can keep track of my academic responsibilities.",
+  "generated_ac": "1. The system shall allow a student to add a new class entry, including its name, time, and day.\n2. The system shall allow a student to add a new assignment entry, including its name, due date, and associated class.\n3. The system shall display a unified view of all scheduled classes and assignments.\n4. The system shall allow a student to modify or delete an existing class or assignment entry.",
+  "human_action": "Edit",
+  "edited_ac": "1. The system shall allow a student to add a new class entry, including its name, time, and day.\n2. The system shall allow a student to add a new assignment entry, including its name, due date, and associated class.\n3. The system shall display a unified view of all scheduled classes and assignments.\n4. The system shall allow a student to modify or delete an existing class or assignment entry.",
+  "final_ac": "1. The system shall allow the user to schedule classes and assignments successfully.\n2. The system shall handle exceptions without crashing and maintain operational stability.\n3. The system shall allow a student to add a new assignment entry, including its name, due date, and associated class.\n4. The system shall display a unified view of all scheduled classes and assignments.",
+  "selected_criteria_all": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall allow the user to schedule classes and assignments successfully."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 4,
+      "text": "The system shall handle exceptions without crashing and maintain operational stability."
+    },
+    {
+      "model": "Gemini",
+      "index": 2,
+      "text": "The system shall allow a student to add a new assignment entry, including its name, due date, and associated class."
+    },
+    {
+      "model": "Gemini",
+      "index": 3,
+      "text": "The system shall display a unified view of all scheduled classes and assignments."
+    }
+  ],
+  "selected_criteria_for_model": [
+    {
+      "model": "Gemini",
+      "index": 2,
+      "text": "The system shall allow a student to add a new assignment entry, including its name, due date, and associated class."
+    },
+    {
+      "model": "Gemini",
+      "index": 3,
+      "text": "The system shall display a unified view of all scheduled classes and assignments."
+    }
+  ],
+  "device": "CPU"
+}
