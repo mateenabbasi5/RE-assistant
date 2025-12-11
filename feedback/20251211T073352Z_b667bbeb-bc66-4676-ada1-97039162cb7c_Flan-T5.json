@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-12-11 09:33:52",
+  "session_id": "b667bbeb-bc66-4676-ada1-97039162cb7c",
+  "model": "Flan-T5",
+  "models_used": [
+    "Flan-T5"
+  ],
+  "user_story": "As a gym owner, I want to offer a mobile app for my members so that they can easily book classes and access gym resources from their smartphones.",
+  "generated_ac": "1. The system shall allow users to book classes through the mobile app successfully.\n2. The system shall provide clear feedback messages after each booking action is completed.\n3. The system shall validate user inputs during the booking process and display meaningful error messages for invalid entries.\n4. The system shall handle exceptional cases, such as network errors, without crashing and maintain operational stability.",
+  "human_action": "Accept",
+  "edited_ac": "1. The system shall allow users to book classes through the mobile app successfully.\n2. The system shall provide clear feedback messages after each booking action is completed.\n3. The system shall validate user inputs during the booking process and display meaningful error messages for invalid entries.\n4. The system shall handle exceptional cases, such as network errors, without crashing and maintain operational stability.",
+  "final_ac": "1. The system shall allow users to book classes through the mobile app successfully.\n2. The system shall provide clear feedback messages after each booking action is completed.\n3. The system shall validate user inputs during the booking process and display meaningful error messages for invalid entries.",
+  "selected_criteria_all": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall allow users to book classes through the mobile app successfully."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 2,
+      "text": "The system shall provide clear feedback messages after each booking action is completed."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 3,
+      "text": "The system shall validate user inputs during the booking process and display meaningful error messages for invalid entries."
+    }
+  ],
+  "selected_criteria_for_model": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall allow users to book classes through the mobile app successfully."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 2,
+      "text": "The system shall provide clear feedback messages after each booking action is completed."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 3,
+      "text": "The system shall validate user inputs during the booking process and display meaningful error messages for invalid entries."
+    }
+  ],
+  "device": "CPU"
+}
