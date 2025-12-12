@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-12-12 11:28:42",
+  "session_id": "e540d339-72b1-4a59-8c5c-424e38f6a1a5",
+  "model": "Flan-T5",
+  "models_used": [
+    "Flan-T5",
+    "Gemini"
+  ],
+  "user_story": "As a caregiver, I want a mobile app to access and review my loved one's health records so that I can ensure they receive the appropriate care and support.",
+  "generated_ac": "1. The system shall allow the user to access and review health records of their loved one successfully.\n2. The system shall provide clear feedback upon the completion of each action taken by the user.\n3. The system shall validate user inputs and display specific error messages for invalid entries.\n4. The system shall handle errors and exceptions without crashing, ensuring stability during use.",
+  "human_action": "Accept",
+  "edited_ac": "1. The system shall allow the user to access and review health records of their loved one successfully.\n2. The system shall provide clear feedback upon the completion of each action taken by the user.\n3. The system shall validate user inputs and display specific error messages for invalid entries.\n4. The system shall handle errors and exceptions without crashing, ensuring stability during use.",
+  "final_ac": "1. The system shall allow the user to access and review health records of their loved one successfully.\n2. The system shall provide clear feedback upon the completion of each action taken by the user.\n3. The system shall present detailed information for each selected health record entry, including relevant dates, descriptions, and associated providers.\n4. The system shall indicate the date and time of the last update for each displayed health record category.",
+  "selected_criteria_all": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall allow the user to access and review health records of their loved one successfully."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 2,
+      "text": "The system shall provide clear feedback upon the completion of each action taken by the user."
+    },
+    {
+      "model": "Gemini",
+      "index": 3,
+      "text": "The system shall present detailed information for each selected health record entry, including relevant dates, descriptions, and associated providers."
+    },
+    {
+      "model": "Gemini",
+      "index": 4,
+      "text": "The system shall indicate the date and time of the last update for each displayed health record category."
+    }
+  ],
+  "selected_criteria_for_model": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall allow the user to access and review health records of their loved one successfully."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 2,
+      "text": "The system shall provide clear feedback upon the completion of each action taken by the user."
+    }
+  ],
+  "device": "CPU"
+}
