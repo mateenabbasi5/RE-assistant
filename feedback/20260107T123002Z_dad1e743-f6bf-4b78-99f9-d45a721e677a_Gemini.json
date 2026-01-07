@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-01-07 14:30:02",
+  "session_id": "dad1e743-f6bf-4b78-99f9-d45a721e677a",
+  "model": "Gemini",
+  "models_used": [
+    "Flan-T5",
+    "Gemini"
+  ],
+  "user_story": "As a manager, I want to receive notifications for timesheets that require my approval on the dashboard so that I can ensure timely processing.",
+  "generated_ac": "1. The system shall display notifications for timesheets requiring approval on the manager's dashboard.\n2. The system shall generate a new notification on the manager's dashboard whenever a timesheet is submitted that requires their approval.\n3. The system shall provide a direct link within each timesheet approval notification to the specific timesheet awaiting action.\n4. The system shall automatically remove a timesheet approval notification from the manager's dashboard once the corresponding timesheet has been approved or rejected.",
+  "human_action": "Accept",
+  "edited_ac": "1. The system shall display notifications for timesheets requiring approval on the manager's dashboard.\n2. The system shall generate a new notification on the manager's dashboard whenever a timesheet is submitted that requires their approval.\n3. The system shall provide a direct link within each timesheet approval notification to the specific timesheet awaiting action.\n4. The system shall automatically remove a timesheet approval notification from the manager's dashboard once the corresponding timesheet has been approved or rejected.",
+  "final_ac": "",
+  "selected_criteria_all": [],
+  "selected_criteria_for_model": [],
+  "device": "CPU"
+}
