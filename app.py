@@ -23,6 +23,7 @@ st.set_page_config(
 
 device_info = "GPU" if torch.cuda.is_available() else "CPU"
 
+# Session State
 if "feedback_log" not in st.session_state:
     st.session_state.feedback_log = []
 if "session_id" not in st.session_state:
@@ -31,6 +32,13 @@ if "user_info_submitted" not in st.session_state:
     st.session_state.user_info_submitted = False
 if "admin_authenticated" not in st.session_state:
     st.session_state.admin_authenticated = False
+
+if "criteria_by_model" not in st.session_state:
+    st.session_state.criteria_by_model = {}
+if "final_selected_ac" not in st.session_state:
+    st.session_state.final_selected_ac = ""
+if "selected_criteria_entries" not in st.session_state:
+    st.session_state.selected_criteria_entries = []
 
 
 def require_secret(key: str):
@@ -43,6 +51,7 @@ def require_secret(key: str):
 
 
 # USER FORM
+
 if not st.session_state.user_info_submitted:
     st.header("👤 Research Participation Form")
     st.markdown(
@@ -51,7 +60,7 @@ if not st.session_state.user_info_submitted:
     )
 
     with st.form("user_info_form"):
-        name = st.text_input("Full Name")
+        name = st.text_input("Full Name (optional)")
         email = st.text_input("Email (optional)")
         affiliation = st.text_input("Affiliation / Organization (optional)")
 
@@ -74,18 +83,13 @@ if not st.session_state.user_info_submitted:
             help="Enter a whole number (e.g., 2, 5, 10).",
         )
 
-        experience_software = st.selectbox(
-            "Your experience level with computer software:",
-            [
-                "Very uncomfortable",
-                "Somewhat comfortable",
-                "Comfortable",
-                "Very comfortable",
-                "Expert user",
-            ],
+        experience_re_years = st.number_input(
+            "How many years of experience do you have with software requirements / Requirements Engineering?",
+            min_value=0,
+            max_value=50,
+            step=1,
+            help="Enter a whole number (e.g., 1, 3, 10).",
         )
-
-        purpose = st.text_area("How do you plan to use this tool?")
 
         consent = st.checkbox("I consent to my data being collected for research purposes")
         submitted = st.form_submit_button("Submit Information")
@@ -112,8 +116,7 @@ if not st.session_state.user_info_submitted:
                     "affiliation": affiliation,
                     "experience_it": experience_it,
                     "experience_years": experience_years,
-                    "experience_software": experience_software,
-                    "purpose": purpose,
+                    "experience_re_years": experience_re_years,
                     "device": device_info,
                 }
 
@@ -135,7 +138,8 @@ if not st.session_state.user_info_submitted:
                 st.exception(e)
                 st.stop()
 
-# MAIN APP after user info submitted
+# MAIN APP (after user info submitted)
+
 if st.session_state.user_info_submitted:
     # Secrets / API keys
     GEMINI_KEY = require_secret("GEMINI_KEY")
@@ -151,6 +155,15 @@ if st.session_state.user_info_submitted:
 
     GEMINI_MODEL = "gemini-2.5-flash"
     TOGETHER_MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+
+    # User-story-related state
+    if "user_story_text" not in st.session_state:
+        st.session_state.user_story_text = ""
+    if "candidate_user_stories" not in st.session_state:
+        st.session_state.candidate_user_stories = []
+    if "selected_user_story_index" not in st.session_state:
+        st.session_state.selected_user_story_index = None
+
 
     # FLAN-T5-LARGE
 
@@ -198,7 +211,7 @@ Now write the 4 acceptance criteria:
 1."""
 
     # FLAN-T5 HELPERS
- 
+
     def deduplicate_criteria(criteria: list[str]) -> list[str]:
         """Remove near-duplicate criteria based on a normalized key."""
         seen = set()
@@ -386,6 +399,19 @@ Rules:
 
         return "\n".join(f"{i+1}. {c}" for i, c in enumerate(final))
 
+    # Helper to parse numbered criteria into a list
+    def parse_criteria_list(text: str) -> list[str]:
+        lines = []
+        for line in text.splitlines():
+            l = line.strip()
+            if not l:
+                continue
+            l = re.sub(r"^\s*\d+[\.\)]\s*", "", l).strip()
+            if l:
+                lines.append(l)
+        return lines
+
+
     # GEMINI / OPENAI / LLAMA HELPERS
 
     def try_gemini_output(user_story: str, use_rag: bool) -> str:
@@ -443,15 +469,202 @@ Rules:
         except Exception as e:
             return f"❌ Together.ai (LLaMA) error: {e}"
 
+
     # MAIN INTERFACE
 
     st.title("📚 Human-in-the-Loop Acceptance Criteria Assistant")
     st.markdown(f"**Session ID:** `{st.session_state.session_id}`")
     st.markdown(f"**Device Used:** `{device_info}`")
 
-    user_story = st.text_area("Enter your User Story:", height=150)
 
-    #  updated model selection after Nov meeting 
+    # 1️⃣ Describe what you need
+
+    st.markdown("## 1️⃣ Describe what you need")
+
+    tab_manual, tab_form, tab_llm = st.tabs(
+        [
+            "✍️ I already have a user story",
+            "🧩 Help me build a user story",
+            "🤖 Convert my requirement into user stories",
+        ]
+    )
+
+    with tab_manual:
+        st.markdown(
+            "Write or paste your user story here (e.g., `As a customer, I want ... so that ...`)."
+        )
+        manual_story = st.text_area(
+            "User Story",
+            value=st.session_state.user_story_text,
+            height=150,
+            key="user_story_manual",
+        )
+        st.session_state.user_story_text = manual_story
+
+    with tab_form:
+        st.markdown(
+            """
+Use this guided form if you're not familiar with user stories.  
+We'll build something like:  
+**As a `<role>`, I want `<goal>` so that `<reason>`.**
+"""
+        )
+
+        col1, col2 = st.columns(2)
+        with col1:
+            role = st.text_input(
+                "Who is the user? (role)", placeholder="e.g., online banking customer"
+            )
+        with col2:
+            goal = st.text_input(
+                "What do they want to do?", placeholder="e.g., view my transaction history"
+            )
+
+        reason = st.text_input(
+            "Why do they want this? (benefit / reason)",
+            placeholder="e.g., so that I can track my spending",
+        )
+
+        context_extra = st.text_area(
+            "Optional context (constraints, system name, etc.)",
+            placeholder="e.g., within the mobile app, only for accounts the customer owns.",
+            height=80,
+        )
+
+        if st.button("✨ Build User Story", key="build_user_story"):
+            if role and goal:
+                base_story = f"As a {role}, I want to {goal}"
+                if reason:
+                    base_story += f" so that {reason}"
+                base_story += "."
+
+                if context_extra.strip():
+                    base_story += f"\n\nAdditional context: {context_extra.strip()}"
+
+                st.session_state.user_story_text = base_story
+                st.session_state.candidate_user_stories = []
+                st.session_state.selected_user_story_index = None
+                st.success("✅ User story created. You can review/edit it in the first tab.")
+            else:
+                st.warning("Please fill at least the *role* and the *goal*.")
+
+    with tab_llm:
+        st.markdown(
+            """
+Describe what you need in plain language and I'll generate several alternative user stories.  
+For example: *"I need a feature for managers to approve timesheets from a dashboard."*
+"""
+        )
+        raw_req = st.text_area(
+            "Describe your requirement",
+            height=120,
+            key="raw_requirement_text",
+        )
+
+        if st.button("🤖 Generate User Stories", key="llm_generate_user_story"):
+            if not raw_req.strip():
+                st.warning("Please describe your requirement first.")
+            else:
+                try:
+                    prompt = f"""
+You are a requirements engineer.
+
+Convert the following plain-language requirement into **3 alternative user stories**
+using the classic template:
+
+"As a <type of user>, I want <some goal> so that <some reason>."
+
+Requirement:
+\"\"\"{raw_req}\"\"\"
+
+Rules:
+- Generate **3 distinct user stories** that are all reasonable interpretations.
+- Number them as 1., 2., 3.
+- Each story should be on a separate line.
+
+Now write the 3 user stories:
+1.
+2.
+3.
+"""
+                    response = openai_client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You write clear, concise user stories.",
+                            },
+                            {"role": "user", "content": prompt},
+                        ],
+                        temperature=0.5,
+                        max_tokens=300,
+                    )
+                    stories_text = response.choices[0].message.content.strip()
+
+                    # Parse numbered user stories
+                    candidates = []
+                    for line in stories_text.splitlines():
+                        line = line.strip()
+                        if not line:
+                            continue
+                        line = re.sub(r"^\s*\d+[\.\)]\s*", "", line).strip()
+                        if len(line) < 15:
+                            continue
+                        candidates.append(line)
+
+                    if not candidates:
+                        candidates = [stories_text]
+
+                    st.session_state.candidate_user_stories = candidates
+                    st.session_state.selected_user_story_index = 0
+                    st.session_state.user_story_text = candidates[0]
+
+                    st.success("✅ User stories generated. Select your preferred one below.")
+                    st.markdown("**Generated user story options:**")
+                    for i, s in enumerate(candidates, start=1):
+                        st.markdown(f"**{i}.** {s}")
+
+                except Exception as e:
+                    st.error("⚠️ Could not generate user stories automatically.")
+                    st.exception(e)
+
+    # If we have multiple candidate user stories, allow selection
+    if st.session_state.candidate_user_stories:
+        st.markdown("### 1️⃣Select which user story to use")
+        options = [
+            f"{i+1}. {s}"
+            for i, s in enumerate(st.session_state.candidate_user_stories)
+        ]
+        default_index = (
+            st.session_state.selected_user_story_index
+            if st.session_state.selected_user_story_index is not None
+            else 0
+        )
+        choice = st.radio(
+            "Candidate user stories:",
+            options,
+            index=default_index,
+            key="user_story_choice",
+        )
+        chosen_index = options.index(choice)
+        st.session_state.selected_user_story_index = chosen_index
+        st.session_state.user_story_text = st.session_state.candidate_user_stories[
+            chosen_index
+        ]
+
+    user_story = st.session_state.user_story_text
+
+
+    #  Generate acceptance criteria
+
+    st.markdown("## 2️⃣ Generate acceptance criteria from this user story")
+    st.text_area(
+        "Final user story used as input",
+        value=user_story,
+        height=120,
+        disabled=True,
+    )
+
     st.markdown("### Choose Models and Retrieval Options")
 
     available_models = ["Flan-T5", "Gemini", "OpenAI", "LLaMA-3 (Together)"]
@@ -483,7 +696,6 @@ Rules:
         )
 
         with col:
-            # Card container with border
             with st.container(border=True):
                 st.markdown(
                     f"#### {model_icons.get(model_name, '🤖')} {model_name}"
@@ -493,7 +705,7 @@ Rules:
                 use_model = st.checkbox(
                     "Enable Model",
                     key=f"use_{safe_key}",
-                    value=(model_name == "Flan-T5"),  # Flan-T5 enabled by default
+                    value=(model_name == "Flan-T5"),
                 )
                 use_rag_flag = st.checkbox(
                     "Apply RAG (project documents)", key=f"rag_{safe_key}"
@@ -505,11 +717,17 @@ Rules:
 
     generate = st.button("Generate Acceptance Criteria")
 
-    if generate and user_story:
-        if not selected_models:
+    if generate:
+        if not user_story or not user_story.strip():
+            st.warning("⚠️ Please create or select a user story first (see the section above).")
+        elif not selected_models:
             st.warning("⚠️ Please select at least one model.")
         else:
             st.session_state.generated = {}
+            st.session_state.criteria_by_model = {}
+            st.session_state.final_selected_ac = ""
+            st.session_state.selected_criteria_entries = []
+
             cols = st.columns(len(selected_models))
 
             for i, model_name in enumerate(selected_models):
@@ -531,26 +749,86 @@ Rules:
                         output = "❌ Unsupported model"
 
                     st.session_state.generated[model_name] = output
-                    st.text_area("", value=output, height=200, key=f"out_{model_name}")
+                    st.text_area(
+                        "Generated acceptance criteria",
+                        value=output,
+                        height=200,
+                        key=f"out_{model_name}",
+                        label_visibility="collapsed",
+                    )
                     st.caption(f"⏱️ Time taken: {time.time() - start:.2f} sec")
 
-    # FEEDBACK SECTION
+                    st.session_state.criteria_by_model[model_name] = parse_criteria_list(
+                        output
+                    )
+
+
+    # Select individual acceptance criteria across models
+
+    if st.session_state.criteria_by_model:
+        st.markdown("## 3️⃣ Select the most relevant acceptance criteria")
+        st.caption("Your selections below are automatically combined into the final list in step 5.")
+
+        selected_entries_temp = []
+
+        for model_name, crit_list in st.session_state.criteria_by_model.items():
+            if not crit_list:
+                continue
+            st.markdown(f"**{model_name}**")
+            for idx, crit in enumerate(crit_list, start=1):
+                key = f"crit_sel_{model_name}_{idx}"
+                checked = st.checkbox(f"{idx}. {crit}", key=key)
+                if checked:
+                    selected_entries_temp.append(
+                        {"model": model_name, "index": idx, "text": crit}
+                    )
+
+        # Automatically update final selection whenever checkboxes change
+        if selected_entries_temp:
+            st.session_state.selected_criteria_entries = selected_entries_temp
+            final_lines = [
+                f"{i+1}. {entry['text']}"
+                for i, entry in enumerate(selected_entries_temp)
+            ]
+            st.session_state.final_selected_ac = "\n".join(final_lines)
+        else:
+            st.session_state.selected_criteria_entries = []
+            st.session_state.final_selected_ac = ""
+
+
+    # Feedback on generated criteria
 
     if "generated" in st.session_state and st.session_state.generated:
+        st.markdown("## 4️⃣ Provide feedback on the generated criteria")
         action = st.radio(
-            "What would you like to do?", ("Accept", "Edit", "Regenerate")
+            "Overall, how did you handle the model outputs?",
+            ("Accept", "Edit", "Regenerate"),
         )
         edited = {}
 
         for model_name in st.session_state.generated:
             if action == "Edit":
-                edited[model_name] = st.text_area(
+                edited_text = st.text_area(
                     f"Edit {model_name} Output:",
                     value=st.session_state.generated[model_name],
                     height=200,
                 )
+                edited[model_name] = edited_text
             else:
                 edited[model_name] = st.session_state.generated[model_name]
+
+
+    # Final acceptance criteria + logging
+
+    if "generated" in st.session_state and st.session_state.generated:
+        st.markdown("## 5️⃣ Final acceptance criteria (your agreed version)")
+        final_ac_text = st.text_area(
+            "Final acceptance criteria",
+            value=st.session_state.final_selected_ac,
+            height=220,
+            key="final_ac_text",
+        )
+        st.session_state.final_selected_ac = final_ac_text
 
         if st.button("Submit Feedback"):
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -559,22 +837,34 @@ Rules:
             g = Github(GITHUB_TOKEN)
             repo = g.get_repo(GITHUB_REPO)
 
-            for model_name, final_text in edited.items():
+            models_used = list(st.session_state.generated.keys())
+            selected_entries = st.session_state.selected_criteria_entries
+            final_ac = st.session_state.final_selected_ac
+
+            for model_name in st.session_state.generated.keys():
+                model_text_after_edit = edited.get(
+                    model_name, st.session_state.generated[model_name]
+                )
+
                 entry = {
                     "timestamp": timestamp,
                     "session_id": st.session_state.session_id,
                     "model": model_name,
+                    "models_used": models_used,
                     "user_story": user_story,
                     "generated_ac": st.session_state.generated[model_name],
                     "human_action": action,
-                    "edited_ac": final_text,
+                    "edited_ac": model_text_after_edit,
+                    "final_ac": final_ac,
+                    "selected_criteria_all": selected_entries,
+                    "selected_criteria_for_model": [
+                        e for e in selected_entries if e["model"] == model_name
+                    ],
                     "device": device_info,
                 }
 
-                # Keep also in local session
                 st.session_state.feedback_log.append(entry)
 
-                # Save each feedback entry to GitHub
                 try:
                     feedback_path = (
                         f"feedback/{utc_slug}_{st.session_state.session_id}_{model_name}.json"
@@ -590,7 +880,8 @@ Rules:
 
             st.success("✅ Feedback saved!")
 
-    # Feedback download (from GITHUB)
+
+    # Feedback download (from GitHub)
 
     if st.sidebar.button("Download Feedback Log"):
         try:
@@ -627,6 +918,7 @@ Rules:
         except Exception as e:
             st.sidebar.error("❌ Failed to fetch feedback log from GitHub.")
             st.sidebar.exception(e)
+
 
     # ADMIN Section
 
