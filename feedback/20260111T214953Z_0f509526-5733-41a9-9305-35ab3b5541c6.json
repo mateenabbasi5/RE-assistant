@@ -1,0 +1,242 @@
+{
+  "timestamp_local": "2026-01-11 23:49:53",
+  "timestamp_utc": "2026-01-11T21:49:53Z",
+  "session_id": "0f509526-5733-41a9-9305-35ab3b5541c6",
+  "device": "CPU",
+  "study_config": {
+    "prompt_version": "AC_PROMPT_V4",
+    "device": "CPU",
+    "gemini_model": "gemini-2.5-flash",
+    "openai_model": "gpt-4o-mini",
+    "together_model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "flan_model_id": "google/flan-t5-large",
+    "temperatures": {
+      "Flan-T5": null,
+      "Gemini": null,
+      "OpenAI": 0.7,
+      "LLaMA-3 (Together)": 0.7,
+      "Flan_Polish_OpenAI": 0.4
+    },
+    "max_tokens": {
+      "OpenAI": 512,
+      "LLaMA-3 (Together)": 512,
+      "Gemini": null,
+      "Flan-T5": 260,
+      "Flan_Polish_OpenAI": 400
+    },
+    "rag_context_max_chars": 6000,
+    "selected_models": [
+      "Flan-T5",
+      "Gemini"
+    ],
+    "rag_for_model": {
+      "Flan-T5": false,
+      "Gemini": false,
+      "OpenAI": false,
+      "LLaMA-3 (Together)": false
+    },
+    "locked_at_utc": "2026-01-11T21:49:21Z"
+  },
+  "user_story": "As a isp admin, I want to give connection so that check my customers.",
+  "models": [
+    "Flan-T5",
+    "Gemini"
+  ],
+  "per_model_artifacts": {
+    "Flan-T5": {
+      "raw": "1. The system shall allow the ISP admin to establish connections for customers.\n2. The system shall display a confirmation message upon successfully establishing a connection.\n3. The system shall provide an error message if the connection attempt fails.\n4. The system shall allow the ISP admin to view the status of each customer's connection.",
+      "parsed": [
+        "The system shall allow the ISP admin to establish connections for customers.",
+        "The system shall display a confirmation message upon successfully establishing a connection.",
+        "The system shall provide an error message if the connection attempt fails.",
+        "The system shall allow the ISP admin to view the status of each customer's connection."
+      ],
+      "normalized": [
+        "The system shall allow the ISP admin to establish connections for customers.",
+        "The system shall display a confirmation message upon successfully establishing a connection.",
+        "The system shall provide an error message if the connection attempt fails.",
+        "The system shall allow the ISP admin to view the status of each customer's connection."
+      ],
+      "final_display": "1. The system shall allow the ISP admin to establish connections for customers.\n2. The system shall display a confirmation message upon successfully establishing a connection.\n3. The system shall provide an error message if the connection attempt fails.\n4. The system shall allow the ISP admin to view the status of each customer's connection.",
+      "rag_enabled": false,
+      "duration_sec": 15.681830167770386
+    },
+    "Gemini": {
+      "raw": "1. The system shall enable the ISP admin to provision a new internet service connection for an existing customer account.\n2. The system shall require the ISP admin to specify essential connection parameters, such as speed and data plan, during the provisioning process.\n3. The system shall display a comprehensive list of all connections associated with a selected customer, including their current operational status.\n4. The system shall allow the ISP admin to activate or deactivate an existing customer connection.",
+      "parsed": [
+        "The system shall enable the ISP admin to provision a new internet service connection for an existing customer account.",
+        "The system shall require the ISP admin to specify essential connection parameters, such as speed and data plan, during the provisioning process.",
+        "The system shall display a comprehensive list of all connections associated with a selected customer, including their current operational status.",
+        "The system shall allow the ISP admin to activate or deactivate an existing customer connection."
+      ],
+      "normalized": [
+        "The system shall enable the ISP admin to provision a new internet service connection for an existing customer account.",
+        "The system shall require the ISP admin to specify essential connection parameters, such as speed and data plan, during the provisioning process.",
+        "The system shall display a comprehensive list of all connections associated with a selected customer, including their current operational status.",
+        "The system shall allow the ISP admin to activate or deactivate an existing customer connection."
+      ],
+      "final_display": "1. The system shall enable the ISP admin to provision a new internet service connection for an existing customer account.\n2. The system shall require the ISP admin to specify essential connection parameters, such as speed and data plan, during the provisioning process.\n3. The system shall display a comprehensive list of all connections associated with a selected customer, including their current operational status.\n4. The system shall allow the ISP admin to activate or deactivate an existing customer connection.",
+      "rag_enabled": false,
+      "duration_sec": 5.868526935577393
+    }
+  },
+  "selection": [
+    {
+      "id": "148d1e5f1b11051a",
+      "model": "Flan-T5",
+      "text": "The system shall allow the ISP admin to establish connections for customers."
+    },
+    {
+      "id": "bfbeb7b3b65e8cee",
+      "model": "Gemini",
+      "text": "The system shall enable the ISP admin to provision a new internet service connection for an existing customer account."
+    },
+    {
+      "id": "d3d15a5a92a40eac",
+      "model": "Gemini",
+      "text": "The system shall display a comprehensive list of all connections associated with a selected customer, including their current operational status."
+    }
+  ],
+  "final_ac": "1. The system shall allow the ISP admin to establish connections for customers.\n2. The system shall enable the ISP admin to provision a new internet service connection for an existing customer account.\n3. The system shall display a comprehensive list of all connections associated with a selected customer, including their current operational status.",
+  "human_action": "Accept",
+  "edited_outputs": {
+    "Flan-T5": "1. The system shall allow the ISP admin to establish connections for customers.\n2. The system shall display a confirmation message upon successfully establishing a connection.\n3. The system shall provide an error message if the connection attempt fails.\n4. The system shall allow the ISP admin to view the status of each customer's connection.",
+    "Gemini": "1. The system shall enable the ISP admin to provision a new internet service connection for an existing customer account.\n2. The system shall require the ISP admin to specify essential connection parameters, such as speed and data plan, during the provisioning process.\n3. The system shall display a comprehensive list of all connections associated with a selected customer, including their current operational status.\n4. The system shall allow the ISP admin to activate or deactivate an existing customer connection."
+  },
+  "events": [
+    {
+      "ts_utc": "2026-01-11T21:48:07Z",
+      "event": "user_info_submitted",
+      "payload": {
+        "device": "CPU"
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:48:25Z",
+      "event": "user_story_manual_changed",
+      "payload": {
+        "len": 3
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:48:30Z",
+      "event": "user_story_manual_changed",
+      "payload": {
+        "len": 0
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:14Z",
+      "event": "user_story_built_form",
+      "payload": {
+        "role": "isp admin",
+        "goal": "give connection",
+        "has_reason": true
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:21Z",
+      "event": "study_config_locked",
+      "payload": {
+        "config": {
+          "prompt_version": "AC_PROMPT_V4",
+          "device": "CPU",
+          "gemini_model": "gemini-2.5-flash",
+          "openai_model": "gpt-4o-mini",
+          "together_model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+          "flan_model_id": "google/flan-t5-large",
+          "temperatures": {
+            "Flan-T5": null,
+            "Gemini": null,
+            "OpenAI": 0.7,
+            "LLaMA-3 (Together)": 0.7,
+            "Flan_Polish_OpenAI": 0.4
+          },
+          "max_tokens": {
+            "OpenAI": 512,
+            "LLaMA-3 (Together)": 512,
+            "Gemini": null,
+            "Flan-T5": 260,
+            "Flan_Polish_OpenAI": 400
+          },
+          "rag_context_max_chars": 6000,
+          "selected_models": [
+            "Flan-T5",
+            "Gemini"
+          ],
+          "rag_for_model": {
+            "Flan-T5": false,
+            "Gemini": false,
+            "OpenAI": false,
+            "LLaMA-3 (Together)": false
+          },
+          "locked_at_utc": "2026-01-11T21:49:21Z"
+        }
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:21Z",
+      "event": "generate_clicked",
+      "payload": {
+        "selected_models": [
+          "Flan-T5",
+          "Gemini"
+        ],
+        "rag_for_model": {
+          "Flan-T5": false,
+          "Gemini": false,
+          "OpenAI": false,
+          "LLaMA-3 (Together)": false
+        }
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:36Z",
+      "event": "model_generation_complete",
+      "payload": {
+        "model": "Flan-T5",
+        "duration_sec": 15.681830167770386,
+        "rag_enabled": false,
+        "criteria_count": 4
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:42Z",
+      "event": "model_generation_complete",
+      "payload": {
+        "model": "Gemini",
+        "duration_sec": 5.868526935577393,
+        "rag_enabled": false,
+        "criteria_count": 4
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:47Z",
+      "event": "selections_updated",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:49Z",
+      "event": "selections_updated",
+      "payload": {
+        "count": 2
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:51Z",
+      "event": "selections_updated",
+      "payload": {
+        "count": 3
+      }
+    },
+    {
+      "ts_utc": "2026-01-11T21:49:53Z",
+      "event": "submit_clicked",
+      "payload": {
+        "action": "Accept"
+      }
+    }
+  ]
+}
