@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-01-12 09:03:22",
+  "session_id": "21c77ee9-9891-44f7-85c5-9fa6de39e676",
+  "model": "Flan-T5",
+  "models_used": [
+    "Flan-T5",
+    "Gemini"
+  ],
+  "user_story": "As a manager, I want to view all pending timesheets on my dashboard so that I can quickly approve or reject them in one place.",
+  "generated_ac": "1. The system shall display all pending timesheets on the manager's dashboard for review.\n2. The system shall allow the manager to approve or reject timesheets with a single action.\n3. The system shall provide clear feedback confirming the approval or rejection of each timesheet.\n4. The system shall validate all user inputs and display meaningful error messages for any invalid actions.",
+  "human_action": "Accept",
+  "edited_ac": "1. The system shall display all pending timesheets on the manager's dashboard for review.\n2. The system shall allow the manager to approve or reject timesheets with a single action.\n3. The system shall provide clear feedback confirming the approval or rejection of each timesheet.\n4. The system shall validate all user inputs and display meaningful error messages for any invalid actions.",
+  "final_ac": "",
+  "selected_criteria_all": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall display all pending timesheets on the manager's dashboard for review."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 3,
+      "text": "The system shall provide clear feedback confirming the approval or rejection of each timesheet."
+    },
+    {
+      "model": "Gemini",
+      "index": 1,
+      "text": "The system shall display a list of all timesheets awaiting manager review on the manager's dashboard."
+    },
+    {
+      "model": "Gemini",
+      "index": 2,
+      "text": "The system shall provide a mechanism for the manager to approve individual or multiple pending timesheets from the dashboard."
+    }
+  ],
+  "selected_criteria_for_model": [
+    {
+      "model": "Flan-T5",
+      "index": 1,
+      "text": "The system shall display all pending timesheets on the manager's dashboard for review."
+    },
+    {
+      "model": "Flan-T5",
+      "index": 3,
+      "text": "The system shall provide clear feedback confirming the approval or rejection of each timesheet."
+    }
+  ],
+  "device": "CPU"
+}
