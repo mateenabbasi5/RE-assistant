@@ -1,0 +1,238 @@
+{
+  "timestamp_local": "2026-01-12 11:58:51",
+  "timestamp_utc": "2026-01-12T09:58:51Z",
+  "session_id": "4e896337-2d35-462e-ae70-2d6ed0f4de29",
+  "device": "CPU",
+  "study_config": {
+    "prompt_version": "AC_PROMPT_V4",
+    "device": "CPU",
+    "gemini_model": "gemini-2.5-flash",
+    "openai_model": "gpt-4o-mini",
+    "together_model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "flan_model_id": "google/flan-t5-large",
+    "temperatures": {
+      "Flan-T5": null,
+      "Gemini": null,
+      "OpenAI": 0.7,
+      "LLaMA-3 (Together)": 0.7,
+      "Flan_Polish_OpenAI": 0.4
+    },
+    "max_tokens": {
+      "OpenAI": 512,
+      "LLaMA-3 (Together)": 512,
+      "Gemini": null,
+      "Flan-T5": 260,
+      "Flan_Polish_OpenAI": 400
+    },
+    "rag_context_max_chars": 6000,
+    "selected_models": [
+      "Flan-T5",
+      "Gemini"
+    ],
+    "rag_for_model": {
+      "Flan-T5": false,
+      "Gemini": false,
+      "OpenAI": false,
+      "LLaMA-3 (Together)": false
+    },
+    "locked_at_utc": "2026-01-12T09:57:38Z"
+  },
+  "user_story": "I need a feature for managers to approve timesheets from a dashboard",
+  "models": [
+    "Flan-T5",
+    "Gemini"
+  ],
+  "per_model_artifacts": {
+    "Flan-T5": {
+      "raw": "1. The system shall allow managers to view all submitted timesheets from the dashboard.\n2. The system shall enable managers to approve or reject timesheets directly from the dashboard.\n3. The system shall display a confirmation message after a timesheet is approved or rejected.\n4. The system shall provide an error message if an action cannot be completed due to system issues.",
+      "parsed": [
+        "The system shall allow managers to view all submitted timesheets from the dashboard.",
+        "The system shall enable managers to approve or reject timesheets directly from the dashboard.",
+        "The system shall display a confirmation message after a timesheet is approved or rejected.",
+        "The system shall provide an error message if an action cannot be completed due to system issues."
+      ],
+      "normalized": [
+        "The system shall allow managers to view all submitted timesheets from the dashboard.",
+        "The system shall enable managers to approve or reject timesheets directly from the dashboard.",
+        "The system shall display a confirmation message after a timesheet is approved or rejected.",
+        "The system shall provide an error message if an action cannot be completed due to system issues."
+      ],
+      "final_display": "1. The system shall allow managers to view all submitted timesheets from the dashboard.\n2. The system shall enable managers to approve or reject timesheets directly from the dashboard.\n3. The system shall display a confirmation message after a timesheet is approved or rejected.\n4. The system shall provide an error message if an action cannot be completed due to system issues.",
+      "rag_enabled": false,
+      "duration_sec": 5.214517593383789
+    },
+    "Gemini": {
+      "raw": "1. The system shall display all timesheets awaiting approval on the manager's dashboard.\n2. The system shall provide a clear action for managers to approve individual timesheets from the dashboard.\n3. The system shall update the status of an approved timesheet to 'Approved' upon a manager's action.\n4. The system shall notify the relevant employee when their timesheet has been approved by their manager.",
+      "parsed": [
+        "The system shall display all timesheets awaiting approval on the manager's dashboard.",
+        "The system shall provide a clear action for managers to approve individual timesheets from the dashboard.",
+        "The system shall update the status of an approved timesheet to 'Approved' upon a manager's action.",
+        "The system shall notify the relevant employee when their timesheet has been approved by their manager."
+      ],
+      "normalized": [
+        "The system shall display all timesheets awaiting approval on the manager's dashboard.",
+        "The system shall provide a clear action for managers to approve individual timesheets from the dashboard.",
+        "The system shall update the status of an approved timesheet to 'Approved' upon a manager's action.",
+        "The system shall notify the relevant employee when their timesheet has been approved by their manager."
+      ],
+      "final_display": "1. The system shall display all timesheets awaiting approval on the manager's dashboard.\n2. The system shall provide a clear action for managers to approve individual timesheets from the dashboard.\n3. The system shall update the status of an approved timesheet to 'Approved' upon a manager's action.\n4. The system shall notify the relevant employee when their timesheet has been approved by their manager.",
+      "rag_enabled": false,
+      "duration_sec": 8.348296642303467
+    }
+  },
+  "selection": [
+    {
+      "id": "d70773896934bad2",
+      "model": "Flan-T5",
+      "text": "The system shall allow managers to view all submitted timesheets from the dashboard."
+    },
+    {
+      "id": "b5c09c07065de7ae",
+      "model": "Flan-T5",
+      "text": "The system shall enable managers to approve or reject timesheets directly from the dashboard."
+    },
+    {
+      "id": "99d68e4284de49ec",
+      "model": "Flan-T5",
+      "text": "The system shall display a confirmation message after a timesheet is approved or rejected."
+    },
+    {
+      "id": "07e2048c537871bb",
+      "model": "Gemini",
+      "text": "The system shall notify the relevant employee when their timesheet has been approved by their manager."
+    }
+  ],
+  "final_ac": "1. The system shall allow managers to view all submitted timesheets from the dashboard.\n2. The system shall enable managers to approve or reject timesheets directly from the dashboard.\n3. The system shall display a confirmation message after a timesheet is approved or rejected.\n4. The system shall notify the relevant employee when their timesheet has been approved by their manager.",
+  "human_action": "Accept",
+  "edited_outputs": {
+    "Flan-T5": "1. The system shall allow managers to view all submitted timesheets from the dashboard.\n2. The system shall enable managers to approve or reject timesheets directly from the dashboard.\n3. The system shall display a confirmation message after a timesheet is approved or rejected.\n4. The system shall provide an error message if an action cannot be completed due to system issues.",
+    "Gemini": "1. The system shall display all timesheets awaiting approval on the manager's dashboard.\n2. The system shall provide a clear action for managers to approve individual timesheets from the dashboard.\n3. The system shall update the status of an approved timesheet to 'Approved' upon a manager's action.\n4. The system shall notify the relevant employee when their timesheet has been approved by their manager."
+  },
+  "events": [
+    {
+      "ts_utc": "2026-01-12T09:56:40Z",
+      "event": "user_info_submitted",
+      "payload": {
+        "device": "CPU"
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:57:34Z",
+      "event": "user_story_manual_changed",
+      "payload": {
+        "len": 68
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:57:38Z",
+      "event": "study_config_locked",
+      "payload": {
+        "config": {
+          "prompt_version": "AC_PROMPT_V4",
+          "device": "CPU",
+          "gemini_model": "gemini-2.5-flash",
+          "openai_model": "gpt-4o-mini",
+          "together_model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+          "flan_model_id": "google/flan-t5-large",
+          "temperatures": {
+            "Flan-T5": null,
+            "Gemini": null,
+            "OpenAI": 0.7,
+            "LLaMA-3 (Together)": 0.7,
+            "Flan_Polish_OpenAI": 0.4
+          },
+          "max_tokens": {
+            "OpenAI": 512,
+            "LLaMA-3 (Together)": 512,
+            "Gemini": null,
+            "Flan-T5": 260,
+            "Flan_Polish_OpenAI": 400
+          },
+          "rag_context_max_chars": 6000,
+          "selected_models": [
+            "Flan-T5",
+            "Gemini"
+          ],
+          "rag_for_model": {
+            "Flan-T5": false,
+            "Gemini": false,
+            "OpenAI": false,
+            "LLaMA-3 (Together)": false
+          },
+          "locked_at_utc": "2026-01-12T09:57:38Z"
+        }
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:57:38Z",
+      "event": "generate_clicked",
+      "payload": {
+        "selected_models": [
+          "Flan-T5",
+          "Gemini"
+        ],
+        "rag_for_model": {
+          "Flan-T5": false,
+          "Gemini": false,
+          "OpenAI": false,
+          "LLaMA-3 (Together)": false
+        }
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:57:43Z",
+      "event": "model_generation_complete",
+      "payload": {
+        "model": "Flan-T5",
+        "duration_sec": 5.214517593383789,
+        "rag_enabled": false,
+        "criteria_count": 4
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:57:51Z",
+      "event": "model_generation_complete",
+      "payload": {
+        "model": "Gemini",
+        "duration_sec": 8.348296642303467,
+        "rag_enabled": false,
+        "criteria_count": 4
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:58:41Z",
+      "event": "selections_updated",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:58:42Z",
+      "event": "selections_updated",
+      "payload": {
+        "count": 2
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:58:44Z",
+      "event": "selections_updated",
+      "payload": {
+        "count": 3
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:58:45Z",
+      "event": "selections_updated",
+      "payload": {
+        "count": 4
+      }
+    },
+    {
+      "ts_utc": "2026-01-12T09:58:51Z",
+      "event": "submit_clicked",
+      "payload": {
+        "action": "Accept"
+      }
+    }
+  ]
+}
