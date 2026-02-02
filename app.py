@@ -85,6 +85,9 @@ ss_init("config_locked", False)
 # Reset helper (forces stable key-space when needed)
 ss_init("reset_nonce", 0)
 
+ss_init("pending_regen", False)
+ss_init("final_auto_source", "")
+
 # Secrets Helper
 
 def require_secret(key: str):
@@ -554,6 +557,88 @@ Rules:
         except Exception as e:
             return f"❌ Together.ai (LLaMA) error: {e}"
 
+    def run_generation(user_story: str, selected_models: list[str], rag_for_model: dict[str, bool]):
+        st.session_state.generated = {}
+        st.session_state.criteria_by_model = {}
+        st.session_state.per_model_artifacts = {}
+        st.session_state.selected_criteria_entries = []
+        st.session_state.final_selected_ac = ""
+        st.session_state.edited_outputs = {}
+        st.session_state.final_auto_source = ""
+
+        cols_out = st.columns(len(selected_models))
+        for i, model_name in enumerate(selected_models):
+            with cols_out[i]:
+                st.subheader(f"{model_name} Output")
+                start = time.time()
+
+                use_rag_flag = rag_for_model.get(model_name, False)
+
+                if model_name == "Flan-T5":
+                    raw_output = generate_flan_output(user_story, use_rag=use_rag_flag)
+                elif model_name == "Gemini":
+                    raw_output = try_gemini_output(user_story, use_rag=use_rag_flag)
+                elif model_name == "OpenAI":
+                    raw_output = try_openai_output(user_story, use_rag=use_rag_flag)
+                elif model_name == "LLaMA-3 (Together)":
+                    raw_output = try_llama3_together(user_story, use_rag=use_rag_flag)
+                else:
+                    raw_output = "❌ Unsupported model"
+
+                duration = time.time() - start
+                st.caption(f"⏱️ Time taken: {duration:.2f} sec")
+
+                pp = postprocess_criteria(raw_output, user_story)
+
+                st.session_state.generated[model_name] = raw_output
+                st.session_state.per_model_artifacts[model_name] = {
+                    "raw": raw_output,
+                    "parsed": pp["parsed"],
+                    "normalized": pp["normalized"],
+                    "final_display": pp["final_display"],
+                    "rag_enabled": bool(use_rag_flag),
+                    "duration_sec": duration,
+                }
+
+                st.text_area(
+                    "Generated acceptance criteria",
+                    value=pp["final_display"],
+                    height=200,
+                    key=f"out_{model_name}_{st.session_state.reset_nonce}",
+                    label_visibility="collapsed",
+                    disabled=True,
+                )
+
+                st.session_state.criteria_by_model[model_name] = pp["normalized"]
+
+                log_event(
+                    "model_generation_complete",
+                    {
+                        "model": model_name,
+                        "duration_sec": duration,
+                        "rag_enabled": bool(use_rag_flag),
+                        "criteria_count": len(pp["normalized"]),
+                    },
+                )
+
+        st.success("✅ Generation complete. Proceed to selection below.")
+
+    def build_final_from_selection(entries: list[dict]) -> str:
+        lines = [f"{i+1}. {e['text']}" for i, e in enumerate(entries)]
+        return "\n".join(lines)
+
+    def build_final_from_edited_outputs(edited_outputs: dict, user_story: str) -> tuple[str, list[str]]:
+        combined = []
+        for model_name, txt in edited_outputs.items():
+            pp = postprocess_criteria(txt, user_story)
+            combined.extend(pp["normalized"])
+        combined = dedupe_preserve_order(combined)
+        lines = [f"{i+1}. {c}" for i, c in enumerate(combined)]
+        return "\n".join(lines), combined
+
+    def mark_final_manual():
+        st.session_state.final_auto_source = "manual"
+
     # MAIN INTERFACE
 
     st.title("📚 Human-in-the-Loop Acceptance Criteria Assistant")
@@ -581,6 +666,8 @@ Rules:
         st.session_state.final_selected_ac = ""
         st.session_state.action = "Accept"
         st.session_state.edited_outputs = {}
+        st.session_state.pending_regen = False
+        st.session_state.final_auto_source = ""
         log_event("reset_run")
         st.rerun()
 
@@ -613,6 +700,8 @@ Rules:
         ss_init("config_locked", False)
 
         ss_init("reset_nonce", 0)
+        ss_init("pending_regen", False)
+        ss_init("final_auto_source", "")
 
         log_event("reset_all")
         st.rerun()
@@ -625,6 +714,7 @@ Rules:
             st.write("Generated models:", list(st.session_state.generated.keys()))
             st.write("Selected criteria count:", len(st.session_state.selected_criteria_entries))
             st.write("Final AC length:", len(st.session_state.final_selected_ac or ""))
+            st.write("Final auto source:", st.session_state.final_auto_source)
 
     # Describe what you need
 
@@ -910,72 +1000,19 @@ Now write the 3 user stories:
             log_event("study_config_locked", {"config": st.session_state.study_config})
 
         log_event("generate_clicked", {"selected_models": selected_models, "rag_for_model": rag_for_model})
+        run_generation(user_story, selected_models, rag_for_model)
 
-        st.session_state.generated = {}
-        st.session_state.criteria_by_model = {}
-        st.session_state.per_model_artifacts = {}
-        st.session_state.selected_criteria_entries = []
-        st.session_state.final_selected_ac = ""
+    if st.session_state.pending_regen and st.session_state.study_config and (st.session_state.user_story_text or "").strip():
+        st.session_state.pending_regen = False
+        cfg = st.session_state.study_config
+        selected_models_regen = list(cfg.get("selected_models", []))
+        rag_for_model_regen = dict(cfg.get("rag_for_model", {}))
+        log_event("auto_regenerate_started", {"selected_models": selected_models_regen, "rag_for_model": rag_for_model_regen})
+        run_generation(st.session_state.user_story_text, selected_models_regen, rag_for_model_regen)
         st.session_state.action = "Accept"
-        st.session_state.edited_outputs = {}
-
-        cols_out = st.columns(len(selected_models))
-
-        for i, model_name in enumerate(selected_models):
-            with cols_out[i]:
-                st.subheader(f"{model_name} Output")
-                start = time.time()
-
-                use_rag_flag = rag_for_model.get(model_name, False)
-
-                if model_name == "Flan-T5":
-                    raw_output = generate_flan_output(user_story, use_rag=use_rag_flag)
-                elif model_name == "Gemini":
-                    raw_output = try_gemini_output(user_story, use_rag=use_rag_flag)
-                elif model_name == "OpenAI":
-                    raw_output = try_openai_output(user_story, use_rag=use_rag_flag)
-                elif model_name == "LLaMA-3 (Together)":
-                    raw_output = try_llama3_together(user_story, use_rag=use_rag_flag)
-                else:
-                    raw_output = "❌ Unsupported model"
-
-                duration = time.time() - start
-                st.caption(f"⏱️ Time taken: {duration:.2f} sec")
-
-                pp = postprocess_criteria(raw_output, user_story)
-
-                st.session_state.generated[model_name] = raw_output
-                st.session_state.per_model_artifacts[model_name] = {
-                    "raw": raw_output,
-                    "parsed": pp["parsed"],
-                    "normalized": pp["normalized"],
-                    "final_display": pp["final_display"],
-                    "rag_enabled": bool(use_rag_flag),
-                    "duration_sec": duration,
-                }
-
-                st.text_area(
-                    "Generated acceptance criteria",
-                    value=pp["final_display"],
-                    height=200,
-                    key=f"out_{model_name}_{st.session_state.reset_nonce}",
-                    label_visibility="collapsed",
-                    disabled=True,
-                )
-
-                st.session_state.criteria_by_model[model_name] = pp["normalized"]
-
-                log_event(
-                    "model_generation_complete",
-                    {
-                        "model": model_name,
-                        "duration_sec": duration,
-                        "rag_enabled": bool(use_rag_flag),
-                        "criteria_count": len(pp["normalized"]),
-                    },
-                )
-
-        st.success("✅ Generation complete. Proceed to selection below.")
+        log_event("auto_regenerate_finished", {})
+        st.info("✅ Regenerated outputs. You can now review them.")
+        st.rerun()
 
     # Select individual acceptance criteria across models
 
@@ -988,6 +1025,7 @@ Now write the 3 user stories:
             if st.button("Clear selections"):
                 st.session_state.selected_criteria_entries = []
                 st.session_state.final_selected_ac = ""
+                st.session_state.final_auto_source = ""
                 log_event("selections_cleared")
                 st.rerun()
 
@@ -1031,8 +1069,8 @@ Now write the 3 user stories:
 
         if selected_entries_temp != st.session_state.selected_criteria_entries:
             st.session_state.selected_criteria_entries = selected_entries_temp
-            final_lines = [f"{i+1}. {e['text']}" for i, e in enumerate(selected_entries_temp)]
-            st.session_state.final_selected_ac = "\n".join(final_lines)
+            st.session_state.final_selected_ac = build_final_from_selection(selected_entries_temp)
+            st.session_state.final_auto_source = "selection"
             log_event("selections_updated", {"count": len(selected_entries_temp)})
 
     # Provide feedback on the generated criteria
@@ -1051,10 +1089,13 @@ Now write the 3 user stories:
         if action != st.session_state.action:
             st.session_state.action = action
             log_event("feedback_action_changed", {"action": action})
+            if action == "Regenerate":
+                st.session_state.pending_regen = True
+                st.rerun()
 
         edited_outputs = {}
         for model_name, raw in st.session_state.generated.items():
-            if action == "Edit":
+            if st.session_state.action == "Edit":
                 edited_text = st.text_area(
                     f"Edit {model_name} Output:",
                     value=st.session_state.per_model_artifacts.get(model_name, {}).get("final_display", raw),
@@ -1065,7 +1106,16 @@ Now write the 3 user stories:
             else:
                 edited_outputs[model_name] = st.session_state.per_model_artifacts.get(model_name, {}).get("final_display", raw)
 
-        st.session_state.edited_outputs = edited_outputs
+        if st.session_state.action == "Edit":
+            if edited_outputs != st.session_state.edited_outputs:
+                st.session_state.edited_outputs = edited_outputs
+                combined_text, combined_list = build_final_from_edited_outputs(edited_outputs, st.session_state.user_story_text)
+                if (not st.session_state.final_selected_ac.strip()) or (st.session_state.final_auto_source in ("edited", "")):
+                    st.session_state.final_selected_ac = combined_text
+                    st.session_state.final_auto_source = "edited"
+                log_event("edited_outputs_updated", {"models": list(edited_outputs.keys()), "combined_count": len(combined_list)})
+        else:
+            st.session_state.edited_outputs = edited_outputs
 
     #  Final acceptance criteria (your agreed version)
 
@@ -1079,6 +1129,7 @@ Now write the 3 user stories:
             height=220,
             key="final_selected_ac",
             disabled=not enable_editing,
+            on_change=mark_final_manual if enable_editing else None,
         )
 
         def validate_before_save() -> tuple[bool, str]:
