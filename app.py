@@ -88,6 +88,8 @@ ss_init("reset_nonce", 0)
 ss_init("pending_regen", False)
 ss_init("final_auto_source", "")
 
+ss_init("app_review_submitted", False)
+
 # Secrets Helper
 
 def require_secret(key: str):
@@ -245,6 +247,13 @@ def postprocess_criteria(raw_output: str, user_story: str) -> dict:
     return {"parsed": parsed, "normalized": normalized, "final_display": final_display}
 
 
+def postprocess_criteria_user_edit(text: str) -> list[str]:
+    parsed = extract_numbered_items(text or "")
+    normalized = [normalize_criterion(x) for x in parsed if x and x.strip()]
+    normalized = dedupe_preserve_order(normalized)
+    return normalized
+
+
 def criterion_id(model_name: str, criterion_text: str) -> str:
     """Stable ID for checkbox keys + research logs."""
     base = f"{model_name}||{criterion_text}".encode("utf-8")
@@ -260,6 +269,8 @@ if not st.session_state.user_info_submitted:
         "**Purpose:** This data is collected only for research purposes and will not be shared publicly."
     )
 
+    years_options = list(range(0, 51))
+
     with st.form("user_info_form"):
         name = st.text_input("Full Name (optional)")
         email = st.text_input("Email (optional)")
@@ -274,22 +285,22 @@ if not st.session_state.user_info_submitted:
                 "Advanced",
                 "Expert / Professional",
             ],
+            index=None,
+            placeholder="Select your level...",
         )
 
-        experience_years = st.number_input(
+        experience_years = st.selectbox(
             "How many years of experience do you have in IT or related fields?",
-            min_value=0,
-            max_value=50,
-            step=1,
-            help="Enter a whole number (e.g., 2, 5, 10).",
+            years_options,
+            index=None,
+            placeholder="Select years...",
         )
 
-        experience_re_years = st.number_input(
+        experience_re_years = st.selectbox(
             "How many years of experience do you have with software requirements / Requirements Engineering?",
-            min_value=0,
-            max_value=50,
-            step=1,
-            help="Enter a whole number (e.g., 1, 3, 10).",
+            years_options,
+            index=None,
+            placeholder="Select years...",
         )
 
         consent = st.checkbox("I consent to my data being collected for research purposes")
@@ -299,43 +310,64 @@ if not st.session_state.user_info_submitted:
         if not consent:
             st.error("❌ You must consent before proceeding.")
             st.stop()
-        else:
-            try:
-                repo = get_submissions_repo()
 
-                timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-                path = f"submissions/{timestamp}_{st.session_state.session_id}.json"
+        if experience_it is None:
+            st.error("❌ Please select your IT experience level.")
+            st.stop()
 
-                data = {
-                    "timestamp": timestamp,
-                    "session_id": st.session_state.session_id,
-                    "name": name,
-                    "email": email,
-                    "affiliation": affiliation,
-                    "experience_it": experience_it,
-                    "experience_years": experience_years,
-                    "experience_re_years": experience_re_years,
-                    "device": device_info,
-                }
+        if experience_years is None:
+            st.error("❌ Please select your years of IT experience.")
+            st.stop()
 
-                repo.create_file(
-                    path=path,
-                    message=f"User submission {timestamp}",
-                    content=json.dumps(data, indent=2),
-                )
+        if experience_re_years is None:
+            st.error("❌ Please select your years of RE experience.")
+            st.stop()
 
-                st.success(
-                    "✅ Thank you! Your information has been securely saved. "
-                    "You can now use the app below."
-                )
-                st.session_state.user_info_submitted = True
-                log_event("user_info_submitted", {"device": device_info})
-                st.rerun()
+        if experience_it != "No experience" and int(experience_years) == 0:
+            st.error("❌ If you have IT experience, please choose a value greater than 0.")
+            st.stop()
 
-            except Exception as e:
-                st.error("⚠️ Could not save your information to the private GitHub repo.")
-                st.exception(e)
-                st.stop()
+        if int(experience_re_years) > int(experience_years):
+            st.error("❌ RE experience years cannot be greater than IT experience years.")
+            st.stop()
+
+        try:
+            repo = get_submissions_repo()
+
+            timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+            path = f"submissions/{timestamp}_{st.session_state.session_id}.json"
+
+            data = {
+                "timestamp": timestamp,
+                "timestamp_utc": now_utc_iso(),
+                "session_id": st.session_state.session_id,
+                "name": name,
+                "email": email,
+                "affiliation": affiliation,
+                "experience_it": experience_it,
+                "experience_years": int(experience_years),
+                "experience_re_years": int(experience_re_years),
+                "device": device_info,
+            }
+
+            repo.create_file(
+                path=path,
+                message=f"User submission {timestamp}",
+                content=json.dumps(data, indent=2),
+            )
+
+            st.success(
+                "✅ Thank you! Your information has been securely saved. "
+                "You can now use the app below."
+            )
+            st.session_state.user_info_submitted = True
+            log_event("user_info_submitted", {"device": device_info})
+            st.rerun()
+
+        except Exception as e:
+            st.error("⚠️ Could not save your information to the private GitHub repo.")
+            st.exception(e)
+            st.stop()
 
 
 # MAIN APP (after user info submitted)
@@ -356,7 +388,7 @@ if st.session_state.user_info_submitted:
     FLAN_MODEL_ID = "google/flan-t5-large"
 
     # FLAN-T5-LARGE
- 
+
     @st.cache_resource(show_spinner="⏳ Loading FLAN-T5-Large (first run only)…")
     def load_flan():
         tok = AutoTokenizer.from_pretrained(FLAN_MODEL_ID)
@@ -369,7 +401,7 @@ if st.session_state.user_info_submitted:
     tokenizer, flan_model = load_flan()
 
     # SHARED PROMPT
-  
+
     def build_prompt(user_story: str, context: str | None = None) -> str:
         """
         Build main prompt for Gemini / OpenAI / LLaMA.
@@ -400,7 +432,7 @@ Now write the 4 acceptance criteria:
 1."""
 
     # FLAN-T5 HELPERS (kept polishing with OpenAI)
- 
+
     def polish_criteria_with_openai(criteria: list[str], user_story: str) -> list[str] | None:
         try:
             draft = "\n".join(f"{i+1}. {c}" for i, c in enumerate(criteria))
@@ -501,7 +533,7 @@ Rules:
             return "\n".join([f"{i+1}. {normalize_criterion(polished[i])}" for i in range(4)])
 
         return "\n".join([f"{i+1}. {base_items[i]}" for i in range(4)])
- 
+
     # GEMINI / OPENAI / LLAMA HELPERS
 
     def try_gemini_output(user_story: str, use_rag: bool) -> str:
@@ -627,11 +659,10 @@ Rules:
         lines = [f"{i+1}. {e['text']}" for i, e in enumerate(entries)]
         return "\n".join(lines)
 
-    def build_final_from_edited_outputs(edited_outputs: dict, user_story: str) -> tuple[str, list[str]]:
+    def build_final_from_edited_outputs(edited_outputs: dict) -> tuple[str, list[str]]:
         combined = []
         for model_name, txt in edited_outputs.items():
-            pp = postprocess_criteria(txt, user_story)
-            combined.extend(pp["normalized"])
+            combined.extend(postprocess_criteria_user_edit(txt))
         combined = dedupe_preserve_order(combined)
         lines = [f"{i+1}. {c}" for i, c in enumerate(combined)]
         return "\n".join(lines), combined
@@ -703,6 +734,8 @@ Rules:
         ss_init("pending_regen", False)
         ss_init("final_auto_source", "")
 
+        ss_init("app_review_submitted", False)
+
         log_event("reset_all")
         st.rerun()
 
@@ -715,6 +748,61 @@ Rules:
             st.write("Selected criteria count:", len(st.session_state.selected_criteria_entries))
             st.write("Final AC length:", len(st.session_state.final_selected_ac or ""))
             st.write("Final auto source:", st.session_state.final_auto_source)
+
+    # App Review (Sidebar)
+
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📝 App Review")
+
+    if st.session_state.app_review_submitted:
+        st.sidebar.success("✅ Thank you for your review!")
+    else:
+        with st.sidebar.form("app_review_form"):
+            rating_options = [""] + [1, 2, 3, 4, 5]
+
+            rating = st.select_slider(
+                "Overall rating",
+                options=rating_options,
+                value="",
+                format_func=lambda x: "☆" * 5 if x == "" else ("★" * int(x) + "☆" * (5 - int(x))),
+            )
+
+            what_worked = st.text_area("What worked well? (optional)", height=80)
+            what_to_improve = st.text_area("What should be improved? (optional)", height=80)
+            review_submitted = st.form_submit_button("Submit App Review")
+
+        if review_submitted:
+            if rating == "":
+                st.sidebar.error("❌ Please select a star rating before submitting.")
+            else:
+                try:
+                    repo = get_submissions_repo()
+                    utc_slug = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+                    path = f"app_reviews/{utc_slug}_{st.session_state.session_id}.json"
+
+                    payload = {
+                        "timestamp_utc": now_utc_iso(),
+                        "session_id": st.session_state.session_id,
+                        "device": device_info,
+                        "rating": int(rating),
+                        "what_worked": what_worked.strip(),
+                        "what_to_improve": what_to_improve.strip(),
+                    }
+
+                    repo.create_file(
+                        path=path,
+                        message=f"App review {utc_slug}",
+                        content=json.dumps(payload, indent=2),
+                    )
+
+                    st.session_state.app_review_submitted = True
+                    log_event("app_review_submitted", {"rating": int(rating)})
+                    st.rerun()
+
+                except Exception as e:
+                    st.sidebar.error("❌ Could not save your review to the private repo.")
+                    st.sidebar.exception(e)
+                    log_event("app_review_save_failed", {"error": str(e)})
 
     # Describe what you need
 
@@ -1109,10 +1197,9 @@ Now write the 3 user stories:
         if st.session_state.action == "Edit":
             if edited_outputs != st.session_state.edited_outputs:
                 st.session_state.edited_outputs = edited_outputs
-                combined_text, combined_list = build_final_from_edited_outputs(edited_outputs, st.session_state.user_story_text)
-                if (not st.session_state.final_selected_ac.strip()) or (st.session_state.final_auto_source in ("edited", "")):
-                    st.session_state.final_selected_ac = combined_text
-                    st.session_state.final_auto_source = "edited"
+                combined_text, combined_list = build_final_from_edited_outputs(edited_outputs)
+                st.session_state.final_selected_ac = combined_text
+                st.session_state.final_auto_source = "edited"
                 log_event("edited_outputs_updated", {"models": list(edited_outputs.keys()), "combined_count": len(combined_list)})
         else:
             st.session_state.edited_outputs = edited_outputs
@@ -1168,6 +1255,7 @@ Now write the 3 user stories:
                     "human_action": st.session_state.action,
                     "edited_outputs": st.session_state.edited_outputs,
                     "events": st.session_state.events,
+                    "app_review_submitted": st.session_state.app_review_submitted,
                 }
 
                 try:
