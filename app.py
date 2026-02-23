@@ -1231,7 +1231,7 @@ Now write the 3 user stories:
                     return False, f"Missing artifacts for model: {m}"
             return True, "OK"
 
-        if st.button("Submit Feedback"):
+        if st.button("Submit Final Acceptance Criteria"):
             ok, msg = validate_before_save()
             if not ok:
                 st.error(f"❌ Cannot submit: {msg}")
@@ -1266,7 +1266,7 @@ Now write the 3 user stories:
                         message=f"Feedback batch {utc_slug}",
                         content=json.dumps(payload, indent=2),
                     )
-                    st.success("✅ Feedback saved (private repo)!")
+                    st.success("✅ Accepted criteria saved successfully (private repo)!")
                     log_event("feedback_saved", {"path": feedback_path})
                 except Exception as e:
                     st.error("⚠️ Could not save feedback to the private GitHub repo.")
